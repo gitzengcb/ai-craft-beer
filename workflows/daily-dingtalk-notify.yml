@@ -1,0 +1,36 @@
+name: daily-ai-trending-to-dingtalk
+
+on:
+  schedule:
+    # 每天北京时间 10:00 -> UTC 02:00
+    - cron: '0 2 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run notifier
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # DingTalk webhook secret (repository secret name: dindin)
+          DINDIN: ${{ secrets.dindin }}
+          DINGTALK_KEYWORD: "github"
+          DINGTALK_AT_MOBILE: "13996477307"
+          MAX_CANDIDATES: "120"
+          RATE_SLEEP: "0.8"
+        run: |
+          python scripts/ai_trending_notify.py
